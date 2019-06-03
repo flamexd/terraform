@@ -1,13 +1,13 @@
 # Storage containers to be used as CF Blobstore
 
 resource "random_string" "cf_storage_account_name" {
-  length  = 10
+  length  = 20
   special = false
   upper   = false
 }
 
 resource "azurerm_storage_account" "cf_storage_account" {
-  name                     = "${var.env_name}-${random_string.cf_storage_account_name.result}"
+  name                     = random_string.cf_storage_account_name.result
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Standard"
