@@ -1,18 +1,24 @@
-variable "env_id" {}
+variable "env_id" {
+}
 
-variable "location" {}
+variable "location" {
+}
 
 variable "resource_group_name" {
-  type = "string"
+  type = string
 }
 
-variable "network_name" {}
+variable "network_name" {
+}
 
-variable "resource_group_cidr" {}
+variable "resource_group_cidr" {
+}
 
 locals {
-  pks_cidr          = "${cidrsubnet(var.resource_group_cidr, 6, 3)}"
-  pks_services_cidr = "${cidrsubnet(var.resource_group_cidr, 6, 4)}"
+  pks_cidr          = cidrsubnet(var.resource_group_cidr, 6, 3)
+  pks_services_cidr = cidrsubnet(var.resource_group_cidr, 6, 4)
 }
 
-variable "bosh_deployed_vms_security_group_id" {}
+variable "bosh_deployed_vms_security_group_id" {
+}
+

@@ -15,7 +15,7 @@ variable "dns_suffix" {
 }
 
 variable "pcf_virtual_network_address_space" {
-  type    = "list"
+  type    = list(string)
   default = []
 }
 
@@ -24,16 +24,16 @@ variable "pcf_infrastructure_subnet" {
 }
 
 resource "azurerm_resource_group" "pcf_resource_group" {
-  name     = "${var.env_name}"
-  location = "${var.location}"
+  name     = var.env_name
+  location = var.location
 }
 
 # ============== Security Groups ===============
 
 resource "azurerm_network_security_group" "ops_manager_security_group" {
   name                = "${var.env_name}-ops-manager-security-group"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.pcf_resource_group.name}"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.pcf_resource_group.name
 
   security_rule {
     name                       = "ssh"
@@ -74,8 +74,8 @@ resource "azurerm_network_security_group" "ops_manager_security_group" {
 
 resource "azurerm_network_security_group" "bosh_deployed_vms_security_group" {
   name                = "${var.env_name}-bosh-deployed-vms-security-group"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.pcf_resource_group.name}"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.pcf_resource_group.name
 
   security_rule {
     name                       = "internal-anything"
@@ -228,87 +228,88 @@ resource "azurerm_network_security_group" "bosh_deployed_vms_security_group" {
 
 resource "azurerm_virtual_network" "pcf_virtual_network" {
   name                = "${var.env_name}-virtual-network"
-  depends_on          = ["azurerm_resource_group.pcf_resource_group"]
-  resource_group_name = "${azurerm_resource_group.pcf_resource_group.name}"
-  address_space       = "${var.pcf_virtual_network_address_space}"
-  location            = "${var.location}"
+  depends_on          = [azurerm_resource_group.pcf_resource_group]
+  resource_group_name = azurerm_resource_group.pcf_resource_group.name
+  address_space       = var.pcf_virtual_network_address_space
+  location            = var.location
 }
 
 resource "azurerm_subnet" "infrastructure_subnet" {
   name                      = "${var.env_name}-infrastructure-subnet"
-  depends_on                = ["azurerm_resource_group.pcf_resource_group"]
-  resource_group_name       = "${azurerm_resource_group.pcf_resource_group.name}"
-  virtual_network_name      = "${azurerm_virtual_network.pcf_virtual_network.name}"
-  address_prefix            = "${var.pcf_infrastructure_subnet}"
-  network_security_group_id = "${azurerm_network_security_group.ops_manager_security_group.id}"
+  depends_on                = [azurerm_resource_group.pcf_resource_group]
+  resource_group_name       = azurerm_resource_group.pcf_resource_group.name
+  virtual_network_name      = azurerm_virtual_network.pcf_virtual_network.name
+  address_prefix            = var.pcf_infrastructure_subnet
+  network_security_group_id = azurerm_network_security_group.ops_manager_security_group.id
 }
 
 resource "azurerm_subnet_network_security_group_association" "ops_manager_security_group" {
-  subnet_id                 = "${azurerm_subnet.infrastructure_subnet.id}"
-  network_security_group_id = "${azurerm_network_security_group.ops_manager_security_group.id}"
+  subnet_id                 = azurerm_subnet.infrastructure_subnet.id
+  network_security_group_id = azurerm_network_security_group.ops_manager_security_group.id
 }
 
 # ============= DNS
 
 locals {
-  dns_subdomain = "${var.env_name}"
+  dns_subdomain = var.env_name
 }
 
 resource "azurerm_dns_zone" "env_dns_zone" {
   name                = "${var.dns_subdomain != "" ? var.dns_subdomain : local.dns_subdomain}.${var.dns_suffix}"
-  resource_group_name = "${azurerm_resource_group.pcf_resource_group.name}"
+  resource_group_name = azurerm_resource_group.pcf_resource_group.name
 }
 
 output "dns_zone_name" {
-  value = "${azurerm_dns_zone.env_dns_zone.name}"
+  value = azurerm_dns_zone.env_dns_zone.name
 }
 
 output "dns_zone_name_servers" {
-  value = "${azurerm_dns_zone.env_dns_zone.name_servers}"
+  value = azurerm_dns_zone.env_dns_zone.name_servers
 }
 
 output "resource_group_name" {
-  value = "${azurerm_resource_group.pcf_resource_group.name}"
+  value = azurerm_resource_group.pcf_resource_group.name
 }
 
 output "network_name" {
-  value = "${azurerm_virtual_network.pcf_virtual_network.name}"
+  value = azurerm_virtual_network.pcf_virtual_network.name
 }
 
 output "infrastructure_subnet_id" {
-  value = "${azurerm_subnet.infrastructure_subnet.id}"
+  value = azurerm_subnet.infrastructure_subnet.id
 }
 
 output "infrastructure_subnet_name" {
-  value = "${azurerm_subnet.infrastructure_subnet.name}"
+  value = azurerm_subnet.infrastructure_subnet.name
 }
 
 output "infrastructure_subnet_cidr" {
-  value = "${azurerm_subnet.infrastructure_subnet.address_prefix}"
+  value = azurerm_subnet.infrastructure_subnet.address_prefix
 }
 
 output "infrastructure_subnet_gateway" {
-  value = "${cidrhost(azurerm_subnet.infrastructure_subnet.address_prefix, 1)}"
+  value = cidrhost(azurerm_subnet.infrastructure_subnet.address_prefix, 1)
 }
 
 output "security_group_id" {
-  value = "${azurerm_network_security_group.ops_manager_security_group.id}"
+  value = azurerm_network_security_group.ops_manager_security_group.id
 }
 
 output "security_group_name" {
-  value = "${azurerm_network_security_group.ops_manager_security_group.name}"
+  value = azurerm_network_security_group.ops_manager_security_group.name
 }
 
 output "bosh_deployed_vms_security_group_id" {
-  value = "${azurerm_network_security_group.bosh_deployed_vms_security_group.id}"
+  value = azurerm_network_security_group.bosh_deployed_vms_security_group.id
 }
 
 output "bosh_deployed_vms_security_group_name" {
-  value = "${azurerm_network_security_group.bosh_deployed_vms_security_group.name}"
+  value = azurerm_network_security_group.bosh_deployed_vms_security_group.name
 }
 
 # Deprecated
 
 output "infrastructure_subnet_cidrs" {
-  value = ["${azurerm_subnet.infrastructure_subnet.address_prefix}"]
+  value = [azurerm_subnet.infrastructure_subnet.address_prefix]
 }
+

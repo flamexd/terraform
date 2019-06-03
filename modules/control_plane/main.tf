@@ -1,5 +1,5 @@
 locals {
-  name_prefix = join("-", [var.env_name, "control-plane"])
+  name_prefix = "${var.env_name}-control-plane"
   web_ports   = [80, 443, 8443, 8844, 2222]
 }
 
@@ -17,32 +17,32 @@ resource "azurerm_dns_a_record" "plane" {
 
 resource "azurerm_public_ip" "plane" {
   resource_group_name = var.resource_group_name
-  name                = join("-", [local.name_prefix, "ip"])
+  name                = "${local.name_prefix}-ip"
   location            = var.location
   allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "plane" {
   resource_group_name = var.resource_group_name
-  name                = join("-", [var.env_name, "lb"])
+  name                = "${var.env_name}-lb"
   location            = var.location
 
   frontend_ip_configuration {
-    name                 = join("-", [local.name_prefix, "ip"])
+    name                 = "${local.name_prefix}-ip"
     public_ip_address_id = azurerm_public_ip.plane.id
   }
 }
 
 resource "azurerm_lb_backend_address_pool" "plane" {
   resource_group_name = var.resource_group_name
-  name                = join("-", [local.name_prefix, "pool"])
+  name                = "${local.name_prefix}-pool"
   loadbalancer_id     = azurerm_lb.plane.id
 }
 
 resource "azurerm_lb_probe" "plane" {
   resource_group_name = var.resource_group_name
   count               = length(local.web_ports)
-  name                = join("-", [local.name_prefix, element(local.web_ports, count.index), "probe"])
+  name                = "${local.name_prefix}-${element(local.web_ports, count.index)}-probe"
 
   port     = element(local.web_ports, count.index)
   protocol = "Tcp"
@@ -55,7 +55,7 @@ resource "azurerm_lb_probe" "plane" {
 resource "azurerm_lb_rule" "plane" {
   resource_group_name = var.resource_group_name
   count               = length(local.web_ports)
-  name                = join("-", [local.name_prefix, element(local.web_ports, count.index)])
+  name                = "${local.name_prefix}-${element(local.web_ports, count.index)}"
 
   protocol                       = "Tcp"
   loadbalancer_id                = azurerm_lb.plane.id
@@ -69,16 +69,16 @@ resource "azurerm_lb_rule" "plane" {
 # Firewall
 
 resource "azurerm_network_security_group" "plane" {
-  name                = join("-", [local.name_prefix, "security-group"])
+  name                = "${local.name_prefix}-security-group"
   location            = var.location
   resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_network_security_rule" "plane" {
-  resource_group_name = var.resource_group_name
+  resource_group_name         = var.resource_group_name
   network_security_group_name = azurerm_network_security_group.plane.name
 
-  name                       = join("-", [local.name_prefix, "security-group-rule"])
+  name                       = "${local.name_prefix}-security-group-rule"
   priority                   = 100
   direction                  = "Inbound"
   access                     = "Allow"
@@ -92,7 +92,7 @@ resource "azurerm_network_security_rule" "plane" {
 # Network
 
 resource "azurerm_subnet" "plane" {
-  name                 = join("-", [local.name_prefix, "subnet"])
+  name                 = "${local.name_prefix}-subnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = var.network_name
   address_prefix       = var.cidr
@@ -101,7 +101,7 @@ resource "azurerm_subnet" "plane" {
 # Database
 
 resource "azurerm_postgresql_server" "plane" {
-  name                = join("-", [local.name_prefix, "postgres"])
+  name                = "${local.name_prefix}-postgres"
   resource_group_name = var.resource_group_name
   location            = var.location
 
@@ -127,7 +127,7 @@ resource "azurerm_postgresql_server" "plane" {
 }
 
 resource "azurerm_postgresql_firewall_rule" "plane" {
-  name                = join("-", [local.name_prefix, "postgres-firewall"])
+  name                = "${local.name_prefix}-postgres-firewall"
   resource_group_name = var.resource_group_name
   server_name         = element(azurerm_postgresql_server.plane.*.name, 0)
 
@@ -159,7 +159,7 @@ resource "azurerm_postgresql_database" "credhub" {
   charset     = "UTF8"
   collation   = "English_United States.1252"
 
-  depends_on = ["azurerm_postgresql_database.atc"]
+  depends_on = [azurerm_postgresql_database.atc]
   count      = var.external_db ? 1 : 0
 }
 
@@ -179,3 +179,4 @@ resource "random_string" "postgres_password" {
   length  = 16
   special = false
 }
+

@@ -1,33 +1,33 @@
 # ==================== Storage
 
 resource "azurerm_storage_account" "ops_manager_storage_account" {
-  name                     = "${random_string.ops_manager_storage_account_name.result}"
-  resource_group_name      = "${var.resource_group_name}"
-  location                 = "${var.location}"
+  name                     = random_string.ops_manager_storage_account_name.result
+  resource_group_name      = var.resource_group_name
+  location                 = var.location
   account_tier             = "Premium"
   account_replication_type = "LRS"
 
   tags = {
-    environment = "${var.env_name}"
+    environment = var.env_name
     account_for = "ops-manager"
   }
 }
 
 resource "azurerm_storage_container" "ops_manager_storage_container" {
   name                  = "opsmanagerimage"
-  depends_on            = ["azurerm_storage_account.ops_manager_storage_account"]
-  resource_group_name   = "${var.resource_group_name}"
-  storage_account_name  = "${azurerm_storage_account.ops_manager_storage_account.name}"
+  depends_on            = [azurerm_storage_account.ops_manager_storage_account]
+  resource_group_name   = var.resource_group_name
+  storage_account_name  = azurerm_storage_account.ops_manager_storage_account.name
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "ops_manager_image" {
   name                   = "opsman.vhd"
-  resource_group_name    = "${var.resource_group_name}"
-  storage_account_name   = "${azurerm_storage_account.ops_manager_storage_account.name}"
-  storage_container_name = "${azurerm_storage_container.ops_manager_storage_container.name}"
-  source_uri             = "${var.ops_manager_image_uri}"
-  count                  = "${local.ops_man_vm}"
+  resource_group_name    = var.resource_group_name
+  storage_account_name   = azurerm_storage_account.ops_manager_storage_account.name
+  storage_container_name = azurerm_storage_container.ops_manager_storage_container.name
+  source_uri             = var.ops_manager_image_uri
+  count                  = local.ops_man_vm
   type                   = "page"
 }
 
@@ -40,7 +40,7 @@ resource "azurerm_image" "ops_manager_image" {
   os_disk {
     os_type  = "Linux"
     os_state = "Generalized"
-    blob_uri = azurerm_storage_blob.ops_manager_image[local.ops_man_vm].url
+    blob_uri = azurerm_storage_blob.ops_manager_image[0].url
     size_gb  = 150
   }
 }
@@ -49,10 +49,10 @@ resource "azurerm_image" "ops_manager_image" {
 
 resource "azurerm_dns_a_record" "ops_manager_dns" {
   name                = "opsman"
-  zone_name           = "${var.dns_zone_name}"
-  resource_group_name = "${var.resource_group_name}"
+  zone_name           = var.dns_zone_name
+  resource_group_name = var.resource_group_name
   ttl                 = "60"
-  records             = ["${azurerm_public_ip.ops_manager_public_ip.ip_address}"]
+  records             = [azurerm_public_ip.ops_manager_public_ip.ip_address]
 }
 
 resource "azurerm_dns_a_record" "optional_ops_manager_dns" {
@@ -60,7 +60,7 @@ resource "azurerm_dns_a_record" "optional_ops_manager_dns" {
   zone_name           = var.dns_zone_name
   resource_group_name = var.resource_group_name
   ttl                 = "60"
-  records             = [azurerm_public_ip.optional_ops_manager_public_ip[local.optional_ops_man_vm].ip_address]
+  records             = [azurerm_public_ip.optional_ops_manager_public_ip[0].ip_address]
   count               = local.optional_ops_man_vm
 }
 
@@ -68,41 +68,41 @@ resource "azurerm_dns_a_record" "optional_ops_manager_dns" {
 
 resource "azurerm_public_ip" "ops_manager_public_ip" {
   name                    = "${var.env_name}-ops-manager-public-ip"
-  location                = "${var.location}"
-  resource_group_name     = "${var.resource_group_name}"
+  location                = var.location
+  resource_group_name     = var.resource_group_name
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 }
 
 resource "azurerm_network_interface" "ops_manager_nic" {
   name                      = "${var.env_name}-ops-manager-nic"
-  depends_on                = ["azurerm_public_ip.ops_manager_public_ip"]
-  location                  = "${var.location}"
-  resource_group_name       = "${var.resource_group_name}"
-  network_security_group_id = "${var.security_group_id}"
-  count                     = "${local.ops_man_vm}"
+  depends_on                = [azurerm_public_ip.ops_manager_public_ip]
+  location                  = var.location
+  resource_group_name       = var.resource_group_name
+  network_security_group_id = var.security_group_id
+  count                     = local.ops_man_vm
 
   ip_configuration {
     name                          = "${var.env_name}-ops-manager-ip-config"
-    subnet_id                     = "${var.subnet_id}"
+    subnet_id                     = var.subnet_id
     private_ip_address_allocation = "static"
-    private_ip_address            = "${var.ops_manager_private_ip}"
-    public_ip_address_id          = "${azurerm_public_ip.ops_manager_public_ip.id}"
+    private_ip_address            = var.ops_manager_private_ip
+    public_ip_address_id          = azurerm_public_ip.ops_manager_public_ip.id
   }
 }
 
 resource "azurerm_virtual_machine" "ops_manager_vm" {
-  name                          = join("-", [var.env_name, "ops-manager-vm"])
+  name                          = "${var.env_name}-ops-manager-vm"
   depends_on                    = [azurerm_network_interface.ops_manager_nic]
   location                      = var.location
   resource_group_name           = var.resource_group_name
-  network_interface_ids         = [azurerm_network_interface.ops_manager_nic[local.ops_man_vm].id]
+  network_interface_ids         = [azurerm_network_interface.ops_manager_nic[0].id]
   vm_size                       = var.ops_manager_vm_size
   delete_os_disk_on_termination = "true"
   count                         = local.ops_man_vm
 
   storage_image_reference {
-    id = azurerm_image.ops_manager_image[local.ops_man_vm].id
+    id = azurerm_image.ops_manager_image[0].id
   }
 
   storage_os_disk {
@@ -124,7 +124,7 @@ resource "azurerm_virtual_machine" "ops_manager_vm" {
 
     ssh_keys {
       path     = "/home/ubuntu/.ssh/authorized_keys"
-      key_data = "${tls_private_key.ops_manager.public_key_openssh}"
+      key_data = tls_private_key.ops_manager.public_key_openssh
     }
   }
 }
@@ -133,40 +133,40 @@ resource "azurerm_virtual_machine" "ops_manager_vm" {
 
 resource "azurerm_public_ip" "optional_ops_manager_public_ip" {
   name                         = "${var.env_name}-optional-ops-manager-public-ip"
-  location                     = "${var.location}"
-  resource_group_name          = "${var.resource_group_name}"
-  allocation_method            = "Static"
-  count                        = "${local.optional_ops_man_vm}"
+  location                     = var.location
+  resource_group_name          = var.resource_group_name
+  public_ip_address_allocation = "static"
+  count                        = local.optional_ops_man_vm
 }
 
 resource "azurerm_network_interface" "optional_ops_manager_nic" {
-  name                      = join("-", [var.env_name, "optional-ops-manager-nic"])
-  depends_on                = ["azurerm_public_ip.optional_ops_manager_public_ip"]
+  name                      = "${var.env_name}-optional-ops-manager-nic"
+  depends_on                = [azurerm_public_ip.optional_ops_manager_public_ip]
   location                  = var.location
   resource_group_name       = var.resource_group_name
   network_security_group_id = var.security_group_id
   count                     = local.optional_ops_man_vm
 
   ip_configuration {
-    name                          = join("-", [var.env_name, "optional-ops-manager-ip-config"])
+    name                          = "${var.env_name}-optional-ops-manager-ip-config"
     subnet_id                     = var.subnet_id
     private_ip_address_allocation = "static"
     private_ip_address            = "10.0.8.5"
-    public_ip_address_id          = azurerm_public_ip.optional_ops_manager_public_ip[local.optional_ops_man_vm].id
+    public_ip_address_id          = azurerm_public_ip.optional_ops_manager_public_ip[0].id
   }
 }
 
 resource "azurerm_virtual_machine" "optional_ops_manager_vm" {
-  name                  = join("-", [var.env_name, "optional-ops-manager-vm"])
+  name                  = "${var.env_name}-optional-ops-manager-vm"
   depends_on            = [azurerm_network_interface.optional_ops_manager_nic]
   location              = var.location
   resource_group_name   = var.resource_group_name
-  network_interface_ids = [azurerm_network_interface.optional_ops_manager_nic[local.optional_ops_man_vm].id]
+  network_interface_ids = [azurerm_network_interface.optional_ops_manager_nic[0].id]
   vm_size               = var.ops_manager_vm_size
   count                 = local.optional_ops_man_vm
 
   storage_image_reference {
-    id = azurerm_image.ops_manager_image[local.optional_ops_man_vm].id
+    id = azurerm_image.ops_manager_image[0].id
   }
 
   storage_os_disk {
@@ -188,7 +188,8 @@ resource "azurerm_virtual_machine" "optional_ops_manager_vm" {
 
     ssh_keys {
       path     = "/home/ubuntu/.ssh/authorized_keys"
-      key_data = "${tls_private_key.ops_manager.public_key_openssh}"
+      key_data = tls_private_key.ops_manager.public_key_openssh
     }
   }
 }
+
