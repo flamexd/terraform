@@ -41,7 +41,7 @@ variable "optional_ops_manager_image_uri" {
 }
 
 resource "random_string" "ops_manager_storage_account_name" {
-  length  = 20
+  length  = 10
   special = false
   upper   = false
 }

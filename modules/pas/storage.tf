@@ -1,7 +1,7 @@
 # Storage containers to be used as CF Blobstore
 
 resource "random_string" "cf_storage_account_name" {
-  length  = 20
+  length  = 10
   special = false
   upper   = false
 }
