@@ -22,9 +22,9 @@ variable "cloud_name" {
 }
 
 variable "dns_subdomain" {
-  "type"        = "string"
-  "description" = "The base subdomain used for PCF. For example, if your dns_subdomain is `cf`, and your dns_suffix is `pivotal.io`, your PCF domain would be `cf.pivotal.io`"
-  "default"     = ""
+  type        = "string"
+  description = "The base subdomain used for PCF. For example, if your dns_subdomain is `cf`, and your dns_suffix is `pivotal.io`, your PCF domain would be `cf.pivotal.io`"
+  default     = ""
 }
 
 variable "ops_manager_image_uri" {
@@ -33,7 +33,7 @@ variable "ops_manager_image_uri" {
 
 variable "ops_manager_private_ip" {
   type        = "string"
-  description = "IP for the Ops Manager instance if not deploying in the default infrasstructure subnet"
+  description = "IP for the Ops Manager instance if not deploying in the default infrastructure subnet"
   default     = "10.0.8.4"
 }
 
@@ -56,7 +56,7 @@ variable "pcf_virtual_network_address_space" {
   default = ["10.0.0.0/16"]
 }
 
-variable "plane_cidr" {
+variable "control_plane_cidr" {
   default = "10.0.10.0/28"
 }
 

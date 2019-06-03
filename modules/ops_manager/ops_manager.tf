@@ -33,14 +33,14 @@ resource "azurerm_storage_blob" "ops_manager_image" {
 
 resource "azurerm_image" "ops_manager_image" {
   name                = "ops_manager_image"
-  location            = "${var.location}"
-  resource_group_name = "${var.resource_group_name}"
-  count               = "${local.ops_man_vm}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  count               = local.ops_man_vm
 
   os_disk {
     os_type  = "Linux"
     os_state = "Generalized"
-    blob_uri = "${azurerm_storage_blob.ops_manager_image.url}"
+    blob_uri = azurerm_storage_blob.ops_manager_image[local.ops_man_vm].url
     size_gb  = 150
   }
 }
@@ -48,7 +48,7 @@ resource "azurerm_image" "ops_manager_image" {
 # ==================== DNS
 
 resource "azurerm_dns_a_record" "ops_manager_dns" {
-  name                = "pcf"
+  name                = "opsman"
   zone_name           = "${var.dns_zone_name}"
   resource_group_name = "${var.resource_group_name}"
   ttl                 = "60"
@@ -57,11 +57,11 @@ resource "azurerm_dns_a_record" "ops_manager_dns" {
 
 resource "azurerm_dns_a_record" "optional_ops_manager_dns" {
   name                = "pcf-optional"
-  zone_name           = "${var.dns_zone_name}"
-  resource_group_name = "${var.resource_group_name}"
+  zone_name           = var.dns_zone_name
+  resource_group_name = var.resource_group_name
   ttl                 = "60"
-  records             = ["${azurerm_public_ip.optional_ops_manager_public_ip.ip_address}"]
-  count               = "${local.optional_ops_man_vm}"
+  records             = [azurerm_public_ip.optional_ops_manager_public_ip[local.optional_ops_man_vm].ip_address]
+  count               = local.optional_ops_man_vm
 }
 
 # ==================== VMs
@@ -92,17 +92,17 @@ resource "azurerm_network_interface" "ops_manager_nic" {
 }
 
 resource "azurerm_virtual_machine" "ops_manager_vm" {
-  name                          = "${var.env_name}-ops-manager-vm"
-  depends_on                    = ["azurerm_network_interface.ops_manager_nic"]
-  location                      = "${var.location}"
-  resource_group_name           = "${var.resource_group_name}"
-  network_interface_ids         = ["${azurerm_network_interface.ops_manager_nic.id}"]
-  vm_size                       = "${var.ops_manager_vm_size}"
+  name                          = join("-", [var.env_name, "ops-manager-vm"])
+  depends_on                    = [azurerm_network_interface.ops_manager_nic]
+  location                      = var.location
+  resource_group_name           = var.resource_group_name
+  network_interface_ids         = [azurerm_network_interface.ops_manager_nic[local.ops_man_vm].id]
+  vm_size                       = var.ops_manager_vm_size
   delete_os_disk_on_termination = "true"
-  count                         = "${local.ops_man_vm}"
+  count                         = local.ops_man_vm
 
   storage_image_reference {
-    id = "${azurerm_image.ops_manager_image.id}"
+    id = azurerm_image.ops_manager_image[local.ops_man_vm].id
   }
 
   storage_os_disk {
@@ -135,38 +135,38 @@ resource "azurerm_public_ip" "optional_ops_manager_public_ip" {
   name                         = "${var.env_name}-optional-ops-manager-public-ip"
   location                     = "${var.location}"
   resource_group_name          = "${var.resource_group_name}"
-  public_ip_address_allocation = "static"
+  allocation_method            = "Static"
   count                        = "${local.optional_ops_man_vm}"
 }
 
 resource "azurerm_network_interface" "optional_ops_manager_nic" {
-  name                      = "${var.env_name}-optional-ops-manager-nic"
+  name                      = join("-", [var.env_name, "optional-ops-manager-nic"])
   depends_on                = ["azurerm_public_ip.optional_ops_manager_public_ip"]
-  location                  = "${var.location}"
-  resource_group_name       = "${var.resource_group_name}"
-  network_security_group_id = "${var.security_group_id}"
-  count                     = "${local.optional_ops_man_vm}"
+  location                  = var.location
+  resource_group_name       = var.resource_group_name
+  network_security_group_id = var.security_group_id
+  count                     = local.optional_ops_man_vm
 
   ip_configuration {
-    name                          = "${var.env_name}-optional-ops-manager-ip-config"
-    subnet_id                     = "${var.subnet_id}"
+    name                          = join("-", [var.env_name, "optional-ops-manager-ip-config"])
+    subnet_id                     = var.subnet_id
     private_ip_address_allocation = "static"
     private_ip_address            = "10.0.8.5"
-    public_ip_address_id          = "${azurerm_public_ip.optional_ops_manager_public_ip.id}"
+    public_ip_address_id          = azurerm_public_ip.optional_ops_manager_public_ip[local.optional_ops_man_vm].id
   }
 }
 
 resource "azurerm_virtual_machine" "optional_ops_manager_vm" {
-  name                  = "${var.env_name}-optional-ops-manager-vm"
-  depends_on            = ["azurerm_network_interface.optional_ops_manager_nic"]
-  location              = "${var.location}"
-  resource_group_name   = "${var.resource_group_name}"
-  network_interface_ids = ["${azurerm_network_interface.optional_ops_manager_nic.id}"]
-  vm_size               = "${var.ops_manager_vm_size}"
-  count                 = "${local.optional_ops_man_vm}"
+  name                  = join("-", [var.env_name, "optional-ops-manager-vm"])
+  depends_on            = [azurerm_network_interface.optional_ops_manager_nic]
+  location              = var.location
+  resource_group_name   = var.resource_group_name
+  network_interface_ids = [azurerm_network_interface.optional_ops_manager_nic[local.optional_ops_man_vm].id]
+  vm_size               = var.ops_manager_vm_size
+  count                 = local.optional_ops_man_vm
 
   storage_image_reference {
-    id = "${azurerm_image.ops_manager_image.id}"
+    id = azurerm_image.ops_manager_image[local.optional_ops_man_vm].id
   }
 
   storage_os_disk {
