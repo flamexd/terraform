@@ -1,7 +1,7 @@
 # ==================== Storage
 
 resource "azurerm_storage_account" "ops_manager_storage_account" {
-  name                     = random_string.ops_manager_storage_account_name.result
+  name                     = "${var.env_name}-${random_string.ops_manager_storage_account_name.result}"
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Premium"
@@ -192,4 +192,3 @@ resource "azurerm_virtual_machine" "optional_ops_manager_vm" {
     }
   }
 }
-

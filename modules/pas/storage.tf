@@ -7,7 +7,7 @@ resource "random_string" "cf_storage_account_name" {
 }
 
 resource "azurerm_storage_account" "cf_storage_account" {
-  name                     = random_string.cf_storage_account_name.result
+  name                     = "${var.env_name}-${random_string.cf_storage_account_name.result}"
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Standard"
@@ -50,4 +50,3 @@ resource "azurerm_storage_container" "cf_resources_storage_container" {
   storage_account_name  = azurerm_storage_account.cf_storage_account.name
   container_access_type = "private"
 }
-
