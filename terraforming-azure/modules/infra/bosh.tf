@@ -14,6 +14,8 @@ resource "azurerm_storage_account" "bosh_root_storage_account" {
   tags = {
     environment = var.env_name
     account_for = "bosh"
+    user-agent  = "bosh"
+    type        = "stemcell"
   }
 }
 
