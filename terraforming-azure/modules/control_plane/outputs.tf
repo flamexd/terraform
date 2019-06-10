@@ -30,3 +30,6 @@ output "subnet_gateway" {
   value = cidrhost(var.cidr, 1)
 }
 
+output "security_group" {
+  value = azurerm_network_security_group.plane.name
+}

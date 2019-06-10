@@ -128,17 +128,23 @@ resource "azurerm_postgresql_server" "plane" {
   count = var.external_db ? 1 : 0
 }
 
-resource "azurerm_postgresql_firewall_rule" "plane" {
-  name                = "${local.name_prefix}-postgres-firewall"
+resource "azurerm_postgresql_firewall_rule" "allow-azure-services" {
+  name                = "${local.name_prefix}-postgres-allow-azure-services"
   resource_group_name = var.resource_group_name
-  server_name         = element(azurerm_postgresql_server.plane.*.name, 0)
-
-  # Note, these only refer to internal AZURE IPs and not external
-  # access from anywhere. Please don't change them unless you know
-  # what you are doing. See terraform docs for details
+  server_name         = azurerm_postgresql_server.plane[0].name
 
   start_ip_address = "0.0.0.0"
   end_ip_address   = "0.0.0.0"
+  count            = var.external_db ? 1 : 0
+}
+
+resource "azurerm_postgresql_firewall_rule" "allow-10-net" {
+  name                = "${local.name_prefix}-postgres-allow-10-net"
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_postgresql_server.plane[0].name
+
+  start_ip_address = "10.0.0.1"
+  end_ip_address   = "10.255.255.254"
   count            = var.external_db ? 1 : 0
 }
 

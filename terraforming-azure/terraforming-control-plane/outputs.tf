@@ -98,6 +98,10 @@ output "ops_manager_private_ip" {
 
 # Control Plane ==========================================================================
 
+output "control_plane_security_group" {
+  value = "${module.control_plane.security_group}"
+}
+
 output "control_plane_subnet_cidr" {
   value = "${module.control_plane.cidr}"
 }
