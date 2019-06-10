@@ -1,0 +1,17 @@
+opsman-configuration:
+  azure:
+    boot_disk_size: 150
+    client_id: ${CLIENT_ID}
+    client_secret: ${CLIENT_SECRET}
+    container: opsmanagerimage
+    location: ${LOCATION}
+    network_security_group: ${OPS_MANAGER_SECURITY_GROUP_NAME}
+    private_ip: ${OPS_MANAGER_PRIVATE_IP}
+    public_ip: ${OPS_MANAGER_PUBLIC_IP}
+    resource_group: ${OPS_MANAGER_RESOURCE_GROUP}
+    ssh_public_key: ${OPS_MANAGER_SSH_PUBLIC_KEY}
+    storage_account: ${OPS_MANAGER_STORAGE_ACCOUNT}
+    subscription_id: ${SUBSCRIPTION_ID}
+    tenant_id: ${TENANT_ID}
+    vm_name: opsman
+    vpc_subnet: /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${OPS_MANAGER_RESOURCE_GROUP}/providers/Microsoft.Network/virtualNetworks/${OPS_MANAGER_NETWORK_NAME}/subnets/${OPS_MANAGER_SUBNET_NAME}
