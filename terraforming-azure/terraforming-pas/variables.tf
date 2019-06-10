@@ -139,7 +139,7 @@ variable "pcf_virtual_network_address_space" {
 
 variable "pcf_infrastructure_subnet" {
   type    = string
-  default = "10.0.8.0/26"
+  default = "10.0.8.0/27"
 }
 
 variable "pcf_pas_subnet" {
