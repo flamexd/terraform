@@ -7,7 +7,7 @@ resource "azurerm_dns_a_record" "apps" {
 }
 
 resource "azurerm_dns_a_record" "sys" {
-  name                = "*.sys"
+  name                = "*.system"
   zone_name           = var.dns_zone_name
   resource_group_name = var.resource_group_name
   ttl                 = "60"
@@ -15,7 +15,7 @@ resource "azurerm_dns_a_record" "sys" {
 }
 
 resource "azurerm_dns_a_record" "ssh" {
-  name                = "ssh.sys"
+  name                = "ssh.system"
   zone_name           = var.dns_zone_name
   resource_group_name = var.resource_group_name
   ttl                 = "60"
