@@ -70,6 +70,18 @@ resource "azurerm_network_security_group" "ops_manager_security_group" {
     source_address_prefix      = "Internet"
     destination_address_prefix = "*"
   }
+    security_rule {
+    name                       = "grafana"
+    priority                   = 206
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = 3000
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+
 }
 
 resource "azurerm_network_security_group" "bosh_deployed_vms_security_group" {
@@ -219,6 +231,17 @@ resource "azurerm_network_security_group" "bosh_deployed_vms_security_group" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "1024-1173"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+    security_rule {
+    name                       = "grafana"
+    priority                   = 211
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = 3000
     source_address_prefix      = "Internet"
     destination_address_prefix = "*"
   }

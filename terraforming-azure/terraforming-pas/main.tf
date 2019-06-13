@@ -56,10 +56,10 @@ module "pas" {
   cf_packages_storage_container_name   = var.cf_packages_storage_container_name
   cf_resources_storage_container_name  = var.cf_resources_storage_container_name
 
-  resource_group_name                 = module.infra.resource_group_name
-  dns_zone_name                       = module.infra.dns_zone_name
-  network_name                        = module.infra.network_name
-  bosh_deployed_vms_security_group_id = module.infra.bosh_deployed_vms_security_group_id
+  resource_group_name                  = module.infra.resource_group_name
+  dns_zone_name                        = module.infra.dns_zone_name
+  network_name                         = module.infra.network_name
+  bosh_deployed_vms_security_group_id  = module.infra.bosh_deployed_vms_security_group_id
 }
 
 module "certs" {
@@ -79,12 +79,20 @@ module "isolation_segment" {
   environment = var.env_name
   location    = var.location
 
-  ssl_cert           = var.iso_seg_ssl_cert
-  ssl_private_key    = var.iso_seg_ssl_private_key
-  ssl_ca_cert        = var.iso_seg_ssl_ca_cert
-  ssl_ca_private_key = var.iso_seg_ssl_ca_private_key
+  ssl_cert            = var.iso_seg_ssl_cert
+  ssl_private_key     = var.iso_seg_ssl_private_key
+  ssl_ca_cert         = var.iso_seg_ssl_ca_cert
+  ssl_ca_private_key  = var.iso_seg_ssl_ca_private_key
 
   resource_group_name = module.infra.resource_group_name
   dns_zone            = module.infra.dns_zone_name
 }
 
+module "monitoring" {
+  source = "../modules/monitoring"
+
+  env_name            = var.env_name
+  location            = var.location
+  resource_group_name = module.infra.resource_group_name
+  dns_zone_name       = module.infra.dns_zone_name
+}
