@@ -1,0 +1,10 @@
+---
+- type: replace
+  path: /instance_groups/name=web/vm_extensions?
+  value: [control-plane-lb]
+- type: replace
+  path: /instance_groups/name=uaa/vm_extensions?
+  value: [control-plane-lb]
+- type: replace
+  path: /instance_groups/name=credhub/vm_extensions?
+  value: [control-plane-lb]

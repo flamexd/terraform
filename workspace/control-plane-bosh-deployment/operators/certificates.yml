@@ -1,0 +1,62 @@
+---
+# ATC's cert, why fullchain? See https://github.com/concourse/concourse/issues/1599#issuecomment-330257264
+- type: replace
+  path: /instance_groups/name=web/jobs/name=atc/properties/tls_cert?
+  value: |
+    ((global_cert.certificate))
+    ((global_cert.ca))
+
+- type: replace
+  path: /instance_groups/name=web/jobs/name=atc/properties/generic_oauth/ca_cert/certificate?
+  value: ((global_cert.ca))
+
+- type: replace
+  path: /instance_groups/name=web/jobs/name=atc/properties/tls_key?
+  value: ((global_cert.private_key))
+
+# ATC's connection to UAA
+- type: replace
+  path: /instance_groups/name=web/jobs/name=atc/properties/generic_oauth/token_url?
+  value: ((external_url)):8443/oauth/token
+
+- type: replace
+  path: /instance_groups/name=web/jobs/name=atc/properties/generic_oauth/userinfo_url?
+  value: ((external_url)):8443/userinfo
+
+- type: replace
+  path: /instance_groups/name=uaa/jobs/name=uaa/properties/uaa/sslCertificate?
+  value: ((global_cert.certificate))
+
+- type: replace
+  path: /instance_groups/name=uaa/jobs/name=uaa/properties/uaa/sslPrivateKey?
+  value: ((global_cert.private_key))
+
+- type: replace
+  path: /instance_groups/name=uaa/jobs/name=uaa/properties/uaa/ca_certs/-
+  value: ((global_cert.ca))
+
+- type: replace
+  path: /instance_groups/name=uaa/jobs/name=uaa/properties/login/saml/serviceProviderCertificate?
+  value: ((global_cert.certificate))
+
+- type: replace
+  path: /instance_groups/name=uaa/jobs/name=uaa/properties/login/saml/serviceProviderKey?
+  value: ((global_cert.private_key))
+
+- type: replace
+  path: /instance_groups/name=credhub/jobs/name=credhub/properties/credhub/tls/certificate?
+  value: |
+    ((global_cert.certificate))
+    ((global_cert.ca))
+
+- type: replace
+  path: /instance_groups/name=credhub/jobs/name=credhub/properties/credhub/tls/private_key?
+  value: ((global_cert.private_key))
+
+- type: replace
+  path: /instance_groups/name=credhub/jobs/name=credhub/properties/credhub/ca_certificate?
+  value: ((global_cert.ca))
+
+- type: replace
+  path: /instance_groups/name=credhub/jobs/name=credhub/properties/credhub/authentication/uaa/ca_certs/-
+  value: ((global_cert.ca))
