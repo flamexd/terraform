@@ -1,0 +1,18 @@
+---
+# Replace with REAL values
+# Provided examples are for illustrative purposes only
+external_url: https://plane.core.mcp.conzetti.com
+persistent_disk_type: 10240
+network_name: control-plane
+azs: [ zone-1, zone-2, zone-3 ]
+wildcard_domain: "*.core.mcp.conzetti.com"
+uaa_url: https://uaa.core.mcp.conzetti.com:8443
+uaa_root_zone: plane.core.mcp.conzetti.com
+vm_type: Standard_DS11_v2
+global_cert:
+  certificate: |
+    <redacted>
+  private_key: |
+    <redacted>
+  ca: |
+    <redacted>
